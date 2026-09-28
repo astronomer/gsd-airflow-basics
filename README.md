@@ -8,13 +8,26 @@ than through many small, disconnected snippets.
 Dag contents
 ============
 
-- `dags/complex.py` (`example_complex`): the main teaching example. A tour of TaskGroups,
-  parallel tasks, `chain()`, fan-in/fan-out with the `>>` operator, `depends_on_past`, retries,
-  `execution_timeout`, the TaskFlow API (`@task`), dynamic task mapping (`.expand()`/`.partial()`),
-  Asset outlets, Params, branching (`@task.branch`), `short_circuit`, sensors (`@task.sensor`),
-  trigger rules, `on_failure_callback`, pools, and operator diversity (`BashOperator`,
-  `@task.bash`, `@task`, `PythonOperator` side by side). Read the module docstring at the top of
-  the file for a full list with explanations.
+- `dags/complex.py` (`example_complex`): the main teaching example. Read the module docstring at
+  the top of the file for a full explanation of each pattern. Covers:
+  - TaskGroups
+  - Parallel tasks
+  - `chain()`
+  - Fan-in/fan-out with the `>>` operator
+  - `depends_on_past`
+  - Retries
+  - `execution_timeout`
+  - The TaskFlow API (`@task`)
+  - Dynamic task mapping (`.expand()`/`.partial()`)
+  - Asset outlets
+  - Params
+  - Branching (`@task.branch`)
+  - `short_circuit`
+  - Sensors (`@task.sensor`)
+  - Trigger rules
+  - `on_failure_callback`
+  - Pools
+  - Operator diversity (`BashOperator`, `@task.bash`, `@task`, and `PythonOperator` side by side)
 - `dags/consume_astronaut_asset.py` (`example_asset_consumer`): a second Dag scheduled on the
   `current_astronauts` Asset that `example_complex` produces, demonstrating Asset-based
   (data-aware) scheduling between two Dags.
