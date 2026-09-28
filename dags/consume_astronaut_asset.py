@@ -4,7 +4,7 @@ Example Airflow Dag demonstrating Asset-based (data-aware) scheduling.
 `example_complex`'s crew_roster.get_astronauts task declares
 `outlets=[Asset("current_astronauts")]`. Rather than scheduling this Dag on a
 cron interval, `schedule=[Asset(...)]` below tells Airflow to run it
-automatically every time that asset is updated -- that is, every time
+automatically every time that asset is updated: every time
 `example_complex` successfully produces a new astronaut roster.
 """
 

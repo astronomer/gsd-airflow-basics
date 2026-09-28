@@ -1,0 +1,23 @@
+# Example airflow_settings.yaml for this project.
+#
+# airflow_settings.yaml is local-only (gitignored, since it can hold connection
+# secrets), so copy this file to airflow_settings.yaml after cloning the repository:
+#
+#   cp airflow_settings.example.yaml airflow_settings.yaml
+#
+# Astro CLI applies airflow_settings.yaml automatically on every `astro dev start`.
+#
+# For more information, refer to the docs: https://www.astronomer.io/docs/astro/cli/develop-project#configure-airflow_settingsyaml-local-development-only
+
+airflow:
+  connections:
+    # Required by dags/mission_log_sql_templates.py (example_sql_templates).
+    - conn_id: sqlite_mission_log
+      conn_type: sqlite
+      conn_host: /usr/local/airflow/include/sqlite/mission_log.db
+  pools:
+    # Required by dags/complex.py (example_complex), to cap concurrent launch tasks.
+    - pool_name: launch_pad
+      pool_slot: 2
+      pool_description: Caps concurrent launch tasks for the example_complex demo DAG
+  variables: []

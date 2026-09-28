@@ -1,15 +1,15 @@
 """
 Example Airflow Dag demonstrating `template_searchpath`: instead of inlining SQL
 as Python strings, each task's `sql=` argument is just a filename, and Airflow
-resolves it against the folders listed in `template_searchpath` -- here,
-`include/sql/`. The files themselves are still rendered through Jinja, so
+resolves it against the folders listed in `template_searchpath` (here,
+`include/sql/`). The files themselves are still rendered through Jinja, so
 `{{ run_id }}` works exactly as it would in an inline string.
 
 `insert_mission_log_entry` shows the other way to get values into a query:
 `?` placeholders in the .sql file, filled in through the operator's
 `parameters=` argument rather than interpolated into the SQL text. The values
-in `parameters` are still Jinja-templated (for example `{{ params.mission }}`)
--- only the SQL string itself is no longer built by string interpolation.
+in `parameters` are still Jinja-templated (for example `{{ params.mission }}`);
+only the SQL string itself is no longer built by string interpolation.
 
 Uses SQLite (through `apache-airflow-providers-sqlite`, added to
 requirements.txt) purely because it needs no external database to run: the

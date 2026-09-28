@@ -18,11 +18,11 @@ Airflow concepts:
 - TaskFlow API (`@task`) and dynamic task mapping (`.expand()`/`.partial()`):
   the "crew_roster" group follows the pattern from Astronomer's
   `example_astronauts` tutorial Dag. It calls a real API to get a list of
-  astronauts currently in space, then maps a task over that list at *runtime*
-  -- the number of mapped task instances isn't known until the Dag actually
+  astronauts currently in space, then maps a task over that list at *runtime*:
+  the number of mapped task instances isn't known until the Dag actually
   runs.
 - Asset outlets and XCom: `get_astronauts` declares an Asset outlet (so other
-  Dags could schedule off of it -- see consume_astronaut_asset.py) and pushes
+  Dags could schedule off of it, see consume_astronaut_asset.py) and pushes
   a value to XCom for inspection.
 - Params: `include_crew_roster` lets you toggle a branch from the Trigger Dag
   UI form without editing code.
@@ -63,22 +63,31 @@ from airflow.task.trigger_rule import TriggerRule
 def alert_mission_control(context: dict) -> None:
     """on_failure_callback: fires whenever the task it's attached to fails."""
     ti = context["task_instance"]
-    print(f"ALERT: {ti.task_id} failed on Dag run {context['dag_run'].run_id} -- paging mission control.")
+    print(f"ALERT: {ti.task_id} failed on Dag run {context['dag_run'].run_id}, paging mission control.")
 
 
 with DAG(
     dag_id="example_complex",
+    # schedule=None means this Dag never runs on its own; it only runs when
+    # triggered manually (UI, CLI, or API). Compare with the cron schedule in
+    # dags/simple_example.py and the Asset-based schedule in
+    # dags/consume_astronaut_asset.py.
     schedule=None,
     start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
+    # catchup=False stops Airflow from immediately running one Dag run for
+    # every schedule interval between start_date and now. Almost always what
+    # you want unless you're intentionally backfilling historical data.
     catchup=False,
+    # Tags are just labels for filtering and grouping Dags in the Airflow UI;
+    # they have no effect on scheduling or execution.
     tags=["example", "example2", "example3"],
     # Renders the module docstring above as the Dag's docs in the Airflow UI.
     doc_md=__doc__,
     # default_args apply to every task in the Dag unless a task overrides them.
-    # Note depends_on_past is *not* set here -- see decommission_iss_mission
+    # Note depends_on_past is *not* set here; see decommission_iss_mission
     # below for why it's better scoped to a single task in this example.
     # retry_delay is short so the flaky tasks below retry in seconds rather
-    # than the 5-minute Airflow default -- handy for demoing retries live.
+    # than the 5-minute Airflow default, handy for demoing retries live.
     default_args={"owner": "airflow", "retries": 2, "retry_delay": timedelta(seconds=5)},
     # Only one run of this Dag may be active at a time.
     max_active_runs=1,
@@ -101,7 +110,7 @@ with DAG(
         return random.random() > 0.3
 
     # --- Launch: three independent missions, no dependencies between them,
-    # so Airflow schedules and runs all three in parallel -- though the
+    # so Airflow schedules and runs all three in parallel, though the
     # `pool` below caps how many run at once regardless.
     with TaskGroup("launch") as launch_group:
         launch_iss_mission = BashOperator(
@@ -135,7 +144,7 @@ with DAG(
             retries=3,
             execution_timeout=timedelta(seconds=30),
         )
-        # Plain @task (TaskFlow Python) alongside its BashOperator siblings --
+        # Plain @task (TaskFlow Python) alongside its BashOperator siblings:
         # a TaskGroup doesn't care what operator type each task uses.
         @task(task_id="track_crew_dragon")
         def _track_crew_dragon() -> None:
@@ -183,7 +192,7 @@ with DAG(
 
             Falls back to hardcoded data if the API is unreachable, so the
             Dag stays runnable offline. The returned list's length isn't
-            known ahead of time -- that's what makes the mapping below
+            known ahead of time, which is what makes the mapping below
             "dynamic": Airflow decides how many task instances to create only
             after this task has actually run.
             """
@@ -232,7 +241,7 @@ with DAG(
     # depends_on_past=True and trigger_rule=NONE_FAILED_MIN_ONE_SUCCESS, so
     # only *that* task instance has to wait for its own previous run to
     # succeed before it can run again, and only it tolerates the crew_roster
-    # branch above being skipped -- the other missions use plain defaults.
+    # branch above being skipped; the other missions use plain defaults.
     with TaskGroup("decommission") as decommission_group:
         decommission_iss_mission = BashOperator(
             task_id="decommission_iss_mission",
@@ -255,7 +264,7 @@ with DAG(
         )
 
     # --- Final report: TriggerRule.ALL_DONE means this runs no matter what
-    # happened upstream -- success, failure, or skip -- unlike every other
+    # happened upstream (success, failure, or skip), unlike every other
     # task in this Dag which uses the default ALL_SUCCESS.
     post_mission_report = BashOperator(
         task_id="post_mission_report",
@@ -266,7 +275,7 @@ with DAG(
     # The sensor gates the very start of the pipeline.
     wait_for_launch_window() >> launch_group
 
-    # Each launch feeds its matching tracking task -- three independent,
+    # Each launch feeds its matching tracking task: three independent,
     # parallel branches (launch -> track) running side by side.
     launch_iss_mission >> track_iss
     launch_tiangong_mission >> track_tiangong
